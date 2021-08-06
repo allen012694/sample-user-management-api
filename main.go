@@ -14,6 +14,7 @@ import (
 const (
 	DSN              = "root@tcp(127.0.0.1:3306)/user_db?charset=utf8mb4&parseTime=True&loc=Local"
 	MIGRATION_FOLDER = "migrations"
+	RUNNING_PORT     = "7000"
 )
 
 func main() {
@@ -58,5 +59,10 @@ func main() {
 		panic(err)
 	}
 
+	server := &server{}
+	server.Init(RUNNING_PORT)
 	log.Println("Server running!")
+	if err := server.Serve(); err != nil {
+		log.Fatalln(err)
+	}
 }
