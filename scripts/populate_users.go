@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/allen012694/usersystem/config"
 	_ "github.com/go-sql-driver/mysql"
-	"shopee.com/entry/config"
 )
 
 const BATCH_SIZE = 10000

@@ -1,4 +1,4 @@
-package models
+package profile_picture
 
 import "time"
 
