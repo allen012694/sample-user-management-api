@@ -3,14 +3,11 @@ package controllers
 import (
 	"context"
 	"errors"
-	"fmt"
-	"time"
 
 	"github.com/allen012694/usersystem/config"
 	"github.com/allen012694/usersystem/models/user"
 	"github.com/allen012694/usersystem/types"
 	"github.com/allen012694/usersystem/utils"
-	"github.com/dgrijalva/jwt-go"
 )
 
 func Login(ctx context.Context, req *types.LoginRequest) (*types.LoginResponse, error) {
@@ -27,12 +24,8 @@ func Login(ctx context.Context, req *types.LoginRequest) (*types.LoginResponse, 
 	}
 
 	// Generate JWT token
-	tokenizer := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		Id:        fmt.Sprint(user.Id),
-		ExpiresAt: time.Now().Add(7 * time.Hour).Unix(),
-		IssuedAt:  time.Now().Unix(),
-	})
-	token, err := tokenizer.SignedString([]byte(config.SECRET))
+	tokenizer := utils.NewJwtTokenizer()
+	token, err := tokenizer.Generate(utils.JwtPayload{Id: int64(user.Id)})
 	if err != nil {
 		return nil, err
 	}
