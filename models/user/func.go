@@ -1,23 +1,22 @@
 package user
 
 import (
-	"github.com/allen012694/usersystem/common"
 	"github.com/allen012694/usersystem/types"
+	"gorm.io/gorm"
 )
 
-func GetUserByUsername(username string) (*User, error) {
+func GetUserByUsername(tx *gorm.DB, username string) (*User, error) {
 	var user *User
-	err := common.GetDB().Where(&User{Status: 1, Username: username}).First(&user).Error
+	err := tx.Where(&User{Status: 1, Username: username}).First(&user).Error
 	return user, err
 }
 
-func GetUserById(id int64) (*User, error) {
+func GetUserById(tx *gorm.DB, id int64) (*User, error) {
 	var user *User
-	err := common.GetDB().Where(&User{Status: 1}).First(&user, id).Error
+	err := tx.Where(&User{Status: 1}).First(&user, id).Error
 	return user, err
 }
 
-func UpdateUserById(data *types.UpdateUserRequest) error {
-	err := common.GetDB().Where(&User{Id: data.UserId}).Updates(data).Debug().Error
-	return err
+func UpdateUserById(tx *gorm.DB, data *types.UpdateUserRequest) error {
+	return tx.Where(&User{Id: data.UserId}).Updates(data).Error
 }

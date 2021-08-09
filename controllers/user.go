@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/allen012694/usersystem/common"
 	"github.com/allen012694/usersystem/config"
 	"github.com/allen012694/usersystem/models/user"
 	"github.com/allen012694/usersystem/types"
@@ -12,7 +13,7 @@ import (
 
 func Login(ctx context.Context, req *types.LoginRequest) (*types.LoginResponse, error) {
 	// Look for existed user
-	user, err := user.GetUserByUsername(req.Username)
+	user, err := user.GetUserByUsername(common.GetDB(), req.Username)
 	if err != nil {
 		return nil, errors.New(config.ErrorUserNotExisted)
 	}
@@ -37,7 +38,7 @@ func Login(ctx context.Context, req *types.LoginRequest) (*types.LoginResponse, 
 }
 
 func GetUser(ctx context.Context, req *types.GetUserRequest) (*user.User, error) {
-	user, err := user.GetUserById(req.UserId)
+	user, err := user.GetUserById(common.GetDB(), req.UserId)
 	if err != nil {
 		return nil, errors.New(config.ErrorUserNotExisted)
 	}
@@ -46,11 +47,11 @@ func GetUser(ctx context.Context, req *types.GetUserRequest) (*user.User, error)
 }
 
 func UpdateUser(ctx context.Context, req *types.UpdateUserRequest) (*user.User, error) {
-	err := user.UpdateUserById(req)
+	err := user.UpdateUserById(common.GetDB(), req)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := user.GetUserById(req.UserId)
+	user, err := user.GetUserById(common.GetDB(), req.UserId)
 	return user, err
 }

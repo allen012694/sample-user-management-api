@@ -7,6 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/allen012694/usersystem/common"
 	"github.com/allen012694/usersystem/config"
 	"github.com/allen012694/usersystem/models/user"
 	"github.com/allen012694/usersystem/routes"
@@ -36,7 +37,7 @@ func (server *server) Init(port string) {
 
 	apiV1.GET("/users/me", authRequire, routes.GetCurrentUser)
 	apiV1.PATCH("/users/me", authRequire, routes.UpdateCurrentUser)
-	apiV1.POST("/assets/upload", routes.UploadAsset)
+	apiV1.POST("/users/me/profilePic", authRequire, routes.UploadCurrentUserProfilePicture)
 }
 
 func (server *server) Serve() error {
@@ -54,10 +55,12 @@ func ping(ctx *gin.Context) {
 	})
 }
 
+// ************************ MIDDLEWARES ***********************
+
 func authRequire(ctx *gin.Context) {
 	token, err := utils.ExtractJwtTokenFromHeaderString(ctx.GetHeader("Authorization"))
 	if err != nil {
-		ctx.AbortWithError(403, errors.New(config.ErrorLoginSessionInvalid))
+		ctx.AbortWithError(http.StatusUnauthorized, errors.New(config.ErrorLoginSessionInvalid))
 		return
 	}
 
@@ -65,21 +68,21 @@ func authRequire(ctx *gin.Context) {
 	tokeninzer := utils.NewJwtTokenizer()
 	payload, err := tokeninzer.Validate(token)
 	if err != nil {
-		ctx.AbortWithError(403, errors.New(config.ErrorLoginSessionInvalid))
+		ctx.AbortWithError(http.StatusUnauthorized, errors.New(config.ErrorLoginSessionInvalid))
 		return
 	}
 
 	// Check in redis store
 	err = utils.CheckStoreSession(ctx.Request.Context(), token)
 	if err != nil {
-		ctx.AbortWithError(403, errors.New(config.ErrorLoginSessionInvalid))
+		ctx.AbortWithError(http.StatusUnauthorized, errors.New(config.ErrorLoginSessionInvalid))
 		return
 	}
 
 	// Retrieve corresponding user
-	user, err := user.GetUserById(payload.Id)
+	user, err := user.GetUserById(common.GetDB(), payload.Id)
 	if err != nil {
-		ctx.AbortWithError(403, errors.New(config.ErrorUserNotExisted))
+		ctx.AbortWithError(http.StatusUnauthorized, errors.New(config.ErrorUserNotExisted))
 		return
 	}
 
