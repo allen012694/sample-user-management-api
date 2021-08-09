@@ -14,7 +14,7 @@ import (
 var db *gorm.DB
 
 func InitDB() (*gorm.DB, error) {
-	gormDb, err := gorm.Open(mysql.Open(config.DSN), &gorm.Config{
+	gormDb, err := gorm.Open(mysql.Open(config.DATABASE), &gorm.Config{
 		Logger: logger.New(
 			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 			logger.Config{

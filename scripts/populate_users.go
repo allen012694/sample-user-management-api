@@ -17,9 +17,9 @@ func main() {
 	start := time.Now()
 
 	// open connection
-	db, err := sql.Open("mysql", config.DSN)
+	db, err := sql.Open("mysql", config.DATABASE)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	defer db.Close()
 

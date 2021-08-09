@@ -8,3 +8,7 @@ type LoginRequest struct {
 type LoginResponse struct {
 	SessionToken string `json:"session_token"`
 }
+
+type GetUserRequest struct {
+	Id int64 `json:"id"`
+}

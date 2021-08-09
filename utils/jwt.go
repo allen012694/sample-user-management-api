@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/allen012694/usersystem/config"
@@ -57,4 +58,12 @@ func (tokenizer *JwtTokenizer) Validate(token string) (*JwtPayload, error) {
 	}
 
 	return &claims.Payload, nil
+}
+
+func ExtractJwtTokenFromHeaderString(authoirzationHeader string) (string, error) {
+	parts := strings.Split(authoirzationHeader, " ")
+	if parts[0] != "Bearer" || len(parts) < 2 || strings.TrimSpace(parts[1]) == "" {
+		return "", errors.New(config.ErrorLoginSessionInvalid)
+	}
+	return parts[1], nil
 }

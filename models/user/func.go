@@ -7,3 +7,9 @@ func GetUserByUsername(username string) (*User, error) {
 	err := context.GetDB().Where(&User{Username: username}).First(&user).Error
 	return user, err
 }
+
+func GetUserById(id int64) (*User, error) {
+	var user *User
+	err := context.GetDB().First(&user, id).Error
+	return user, err
+}

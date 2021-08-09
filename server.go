@@ -1,11 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/allen012694/usersystem/config"
+	"github.com/allen012694/usersystem/models/user"
 	"github.com/allen012694/usersystem/routes"
+	"github.com/allen012694/usersystem/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,9 +27,12 @@ func (server *server) Init(port string) {
 
 	// API V1
 	apiV1 := server.router.Group("/v1")
+
+	// authorization middleware
+
 	apiV1.POST("/login", routes.Login)
-	apiV1.PATCH("/users", routes.UpdateUser)
-	apiV1.GET("/users/me", routes.GetCurrentUser)
+	apiV1.PATCH("/users", authRequire, routes.UpdateUser)
+	apiV1.GET("/users/me", authRequire, routes.GetCurrentUser)
 	apiV1.POST("/assets/upload", routes.UploadAsset)
 }
 
@@ -35,7 +42,6 @@ func (server *server) Serve() error {
 }
 
 func home(ctx *gin.Context) {
-	log.Println("Called '/'")
 	ctx.JSON(http.StatusOK, gin.H{"ok": 1})
 }
 
@@ -43,4 +49,28 @@ func ping(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "pong",
 	})
+}
+
+func authRequire(ctx *gin.Context) {
+	token, err := utils.ExtractJwtTokenFromHeaderString(ctx.GetHeader("Authorization"))
+	if err != nil {
+		log.Fatalln(err.Error())
+		panic(errors.New(config.ErrorLoginSessionInvalid))
+	}
+
+	tokeninzer := utils.NewJwtTokenizer()
+	payload, err := tokeninzer.Validate(token)
+	if err != nil {
+		log.Fatalln(err.Error())
+		panic(errors.New(config.ErrorLoginSessionInvalid))
+	}
+
+	user, err := user.GetUserById(payload.Id)
+	if err != nil {
+		log.Fatalln(err.Error())
+		panic(errors.New(config.ErrorUserNotExisted))
+	}
+
+	ctx.Set(config.CURRENT_USER, user)
+	ctx.Next()
 }

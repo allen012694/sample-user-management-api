@@ -17,25 +17,29 @@ func main() {
 	// TODO
 
 	// connect redis
-	// TODO
+	_, err := context.InitRedis()
+	if err != nil {
+		panic(err)
+	}
+	log.Println("Redis connection established")
 
 	// connect DB
 	db, err := context.InitDB()
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	log.Println("Database connection established")
 
 	// migrate
 	sql, err := db.DB()
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	defer sql.Close()
 	goose.SetDialect("mysql")
 	err = goose.Up(sql, config.MIGRATION_FOLDER)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	server := &server{}
@@ -44,4 +48,6 @@ func main() {
 	if err := server.Serve(); err != nil {
 		log.Fatalln(err)
 	}
+
+	log.Println("Server stopeed!")
 }

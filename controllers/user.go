@@ -35,3 +35,12 @@ func Login(ctx context.Context, req *types.LoginRequest) (*types.LoginResponse, 
 
 	return &types.LoginResponse{SessionToken: token}, nil
 }
+
+func GetUser(ctx context.Context, req *types.GetUserRequest) (*user.User, error) {
+	user, err := user.GetUserById(req.Id)
+	if err != nil {
+		return nil, errors.New(config.ErrorUserNotExisted)
+	}
+
+	return user, err
+}
