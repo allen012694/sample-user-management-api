@@ -22,7 +22,11 @@ type server struct {
 func (server *server) Init(port string) {
 	server.port = port
 
-	server.router = gin.Default()
+	server.router = gin.New()
+	// server.router.Use(gin.Logger())
+	server.router.Use(gin.Recovery())
+	server.router.Use(handleError)
+
 	server.router.GET("/ping", ping)
 	server.router.GET("/", home)
 
@@ -30,8 +34,8 @@ func (server *server) Init(port string) {
 	apiV1 := server.router.Group("/v1")
 	apiV1.POST("/login", routes.Login)
 
-	apiV1.PATCH("/users", authRequire, routes.UpdateUser)
 	apiV1.GET("/users/me", authRequire, routes.GetCurrentUser)
+	apiV1.PATCH("/users/me", authRequire, routes.UpdateCurrentUser)
 	apiV1.POST("/assets/upload", routes.UploadAsset)
 }
 
@@ -53,32 +57,41 @@ func ping(ctx *gin.Context) {
 func authRequire(ctx *gin.Context) {
 	token, err := utils.ExtractJwtTokenFromHeaderString(ctx.GetHeader("Authorization"))
 	if err != nil {
-		log.Errorln(err)
 		ctx.AbortWithError(403, errors.New(config.ErrorLoginSessionInvalid))
-	}
-
-	// Check in redis store
-	err = utils.CheckStoreSession(ctx.Request.Context(), token)
-	if err != nil {
-		log.Errorln(err)
-		ctx.AbortWithError(403, errors.New(config.ErrorLoginSessionInvalid))
+		return
 	}
 
 	// Validate against SECRET of JWT
 	tokeninzer := utils.NewJwtTokenizer()
 	payload, err := tokeninzer.Validate(token)
 	if err != nil {
-		log.Errorln(err)
 		ctx.AbortWithError(403, errors.New(config.ErrorLoginSessionInvalid))
+		return
+	}
+
+	// Check in redis store
+	err = utils.CheckStoreSession(ctx.Request.Context(), token)
+	if err != nil {
+		ctx.AbortWithError(403, errors.New(config.ErrorLoginSessionInvalid))
+		return
 	}
 
 	// Retrieve corresponding user
 	user, err := user.GetUserById(payload.Id)
 	if err != nil {
-		log.Errorln(err)
 		ctx.AbortWithError(403, errors.New(config.ErrorUserNotExisted))
+		return
 	}
 
 	ctx.Set(config.CONTEXT_CURRENT_USER, user)
 	ctx.Next()
+}
+
+func handleError(ctx *gin.Context) {
+	ctx.Next()
+
+	if len(ctx.Errors) > 0 {
+		log.Errorln(ctx.Errors)
+		ctx.JSON(ctx.Writer.Status(), ctx.Errors.JSON())
+	}
 }

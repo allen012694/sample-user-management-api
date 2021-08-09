@@ -37,10 +37,20 @@ func Login(ctx context.Context, req *types.LoginRequest) (*types.LoginResponse, 
 }
 
 func GetUser(ctx context.Context, req *types.GetUserRequest) (*user.User, error) {
-	user, err := user.GetUserById(req.Id)
+	user, err := user.GetUserById(req.UserId)
 	if err != nil {
 		return nil, errors.New(config.ErrorUserNotExisted)
 	}
 
+	return user, err
+}
+
+func UpdateUser(ctx context.Context, req *types.UpdateUserRequest) (*user.User, error) {
+	err := user.UpdateUserById(req)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := user.GetUserById(req.UserId)
 	return user, err
 }

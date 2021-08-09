@@ -10,5 +10,15 @@ type LoginResponse struct {
 }
 
 type GetUserRequest struct {
-	Id int64 `json:"id"`
+	UserId int64 `json:"user_id"`
+}
+
+type UpdateUserRequest struct {
+	UserId int64 `json:"user_id" gorm:"-"` // identify prop, not data patch
+
+	Nickname *string `json:"nickname" gorm:"column:nickname;"`
+}
+
+func (UpdateUserRequest) TableName() string {
+	return "user_tab"
 }

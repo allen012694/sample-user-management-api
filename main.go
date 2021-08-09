@@ -13,8 +13,8 @@ import (
 func main() {
 	time.Local = time.UTC
 
-	// set log level
-	// TODO
+	// log configuration
+	log.SetFormatter(&log.JSONFormatter{})
 
 	// init step
 	log.Infoln("Server initialize")
@@ -40,6 +40,7 @@ func main() {
 	}
 	defer sql.Close()
 	goose.SetDialect("mysql")
+	goose.SetLogger(log.StandardLogger())
 	err = goose.Up(sql, config.MIGRATION_FOLDER)
 	if err != nil {
 		panic(err)
