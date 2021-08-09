@@ -3,8 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/allen012694/usersystem/config"
 	"github.com/allen012694/usersystem/models/user"
@@ -27,10 +28,8 @@ func (server *server) Init(port string) {
 
 	// API V1
 	apiV1 := server.router.Group("/v1")
-
-	// authorization middleware
-
 	apiV1.POST("/login", routes.Login)
+
 	apiV1.PATCH("/users", authRequire, routes.UpdateUser)
 	apiV1.GET("/users/me", authRequire, routes.GetCurrentUser)
 	apiV1.POST("/assets/upload", routes.UploadAsset)
@@ -54,23 +53,32 @@ func ping(ctx *gin.Context) {
 func authRequire(ctx *gin.Context) {
 	token, err := utils.ExtractJwtTokenFromHeaderString(ctx.GetHeader("Authorization"))
 	if err != nil {
-		log.Fatalln(err.Error())
-		panic(errors.New(config.ErrorLoginSessionInvalid))
+		log.Errorln(err)
+		ctx.AbortWithError(403, errors.New(config.ErrorLoginSessionInvalid))
 	}
 
+	// Check in redis store
+	err = utils.CheckStoreSession(ctx.Request.Context(), token)
+	if err != nil {
+		log.Errorln(err)
+		ctx.AbortWithError(403, errors.New(config.ErrorLoginSessionInvalid))
+	}
+
+	// Validate against SECRET of JWT
 	tokeninzer := utils.NewJwtTokenizer()
 	payload, err := tokeninzer.Validate(token)
 	if err != nil {
-		log.Fatalln(err.Error())
-		panic(errors.New(config.ErrorLoginSessionInvalid))
+		log.Errorln(err)
+		ctx.AbortWithError(403, errors.New(config.ErrorLoginSessionInvalid))
 	}
 
+	// Retrieve corresponding user
 	user, err := user.GetUserById(payload.Id)
 	if err != nil {
-		log.Fatalln(err.Error())
-		panic(errors.New(config.ErrorUserNotExisted))
+		log.Errorln(err)
+		ctx.AbortWithError(403, errors.New(config.ErrorUserNotExisted))
 	}
 
-	ctx.Set(config.CURRENT_USER, user)
+	ctx.Set(config.CONTEXT_CURRENT_USER, user)
 	ctx.Next()
 }

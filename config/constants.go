@@ -13,5 +13,6 @@ const (
 )
 
 const (
-	CURRENT_USER = "current_user"
+	CONTEXT_CURRENT_USER    = "current_user"
+	REDIS_SESSION_STORE_KEY = "session_store"
 )

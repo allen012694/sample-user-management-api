@@ -31,7 +31,7 @@ func Login(ctx context.Context, req *types.LoginRequest) (*types.LoginResponse, 
 	}
 
 	// Store session into redis
-	// TODO
+	utils.PutStoreSession(ctx, token)
 
 	return &types.LoginResponse{SessionToken: token}, nil
 }

@@ -1,34 +1,37 @@
 package main
 
 import (
-	"log"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
+	"github.com/allen012694/usersystem/common"
 	"github.com/allen012694/usersystem/config"
-	"github.com/allen012694/usersystem/context"
 	"github.com/pressly/goose/v3"
 )
 
 func main() {
-	log.Println("Server initialize")
-	// init step
 	time.Local = time.UTC
+
 	// set log level
 	// TODO
 
+	// init step
+	log.Infoln("Server initialize")
+
 	// connect redis
-	_, err := context.InitRedis()
+	_, err := common.InitRedis()
 	if err != nil {
 		panic(err)
 	}
-	log.Println("Redis connection established")
+	log.Infoln("Redis connection established")
 
 	// connect DB
-	db, err := context.InitDB()
+	db, err := common.InitDB()
 	if err != nil {
 		panic(err)
 	}
-	log.Println("Database connection established")
+	log.Infoln("Database connection established")
 
 	// migrate
 	sql, err := db.DB()
@@ -44,10 +47,10 @@ func main() {
 
 	server := &server{}
 	server.Init(config.RUNNING_PORT)
-	log.Println("Server running!!")
+	log.Infoln("Server running!!")
 	if err := server.Serve(); err != nil {
-		log.Fatalln(err)
+		log.Errorln(err)
 	}
 
-	log.Println("Server stopeed!")
+	log.Infoln("Server stopeed!")
 }

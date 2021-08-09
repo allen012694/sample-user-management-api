@@ -1,4 +1,4 @@
-package context
+package common
 
 import (
 	"github.com/allen012694/usersystem/config"
