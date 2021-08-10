@@ -1,6 +1,8 @@
 package main
 
 import (
+	"io"
+	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -8,13 +10,19 @@ import (
 	"github.com/allen012694/usersystem/common"
 	"github.com/allen012694/usersystem/config"
 	"github.com/pressly/goose/v3"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func main() {
 	time.Local = time.UTC
 
 	// log configuration
+	logFileWriter := &lumberjack.Logger{
+		Filename: "logs/run.log",
+		MaxSize:  3, // megabytes
+	}
 	log.SetFormatter(&log.JSONFormatter{})
+	log.SetOutput(io.MultiWriter(os.Stderr, logFileWriter))
 
 	// init step
 	log.Infoln("Server initialize")
