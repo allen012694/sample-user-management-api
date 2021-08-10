@@ -6,6 +6,7 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
+	UserId       int64  `json:"-"`
 	SessionToken string `json:"session_token"`
 }
 

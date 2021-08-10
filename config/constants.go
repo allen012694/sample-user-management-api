@@ -16,3 +16,9 @@ const (
 	CONTEXT_CURRENT_USER    = "current_user"
 	REDIS_SESSION_STORE_KEY = "session_store"
 )
+
+const (
+	LOG_ACTION_LOGIN  = "login"
+	LOG_ACTION_UPDATE = "update"
+	LOG_ACTION_CREATE = "create"
+)

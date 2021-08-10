@@ -34,7 +34,7 @@ func Login(ctx context.Context, req *types.LoginRequest) (*types.LoginResponse, 
 	// Store session into redis
 	utils.PutStoreSession(ctx, token)
 
-	return &types.LoginResponse{SessionToken: token}, nil
+	return &types.LoginResponse{SessionToken: token, UserId: user.Id}, nil
 }
 
 func GetUser(ctx context.Context, req *types.GetUserRequest) (*user.User, error) {

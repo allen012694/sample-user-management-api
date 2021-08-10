@@ -1,14 +1,19 @@
 package routes
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/allen012694/usersystem/config"
 	"github.com/allen012694/usersystem/controllers"
 	"github.com/allen012694/usersystem/models/user"
 	"github.com/allen012694/usersystem/types"
+	"github.com/allen012694/usersystem/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,6 +31,20 @@ func Login(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response)
+
+	go func() {
+		jsonRequest, _ := json.Marshal(request)
+		jsonResponse, _ := json.Marshal(response)
+		log.Infoln(utils.ActivityLog{
+			Subject:   "user",
+			SubjectId: fmt.Sprint(response.UserId),
+			Object:    "user",
+			ObjectId:  fmt.Sprint(response.UserId),
+			Action:    config.LOG_ACTION_LOGIN,
+			Request:   string(jsonRequest),
+			Response:  string(jsonResponse),
+		})
+	}()
 }
 
 func UpdateCurrentUser(ctx *gin.Context) {
@@ -45,6 +64,20 @@ func UpdateCurrentUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response)
+
+	go func() {
+		jsonRequest, _ := json.Marshal(request)
+		jsonResponse, _ := json.Marshal(response)
+		log.Infoln(utils.ActivityLog{
+			Subject:   "user",
+			SubjectId: fmt.Sprint(request.UserId),
+			Object:    "user",
+			ObjectId:  fmt.Sprint(request.UserId),
+			Action:    config.LOG_ACTION_UPDATE,
+			Request:   string(jsonRequest),
+			Response:  string(jsonResponse),
+		})
+	}()
 }
 
 func GetCurrentUser(ctx *gin.Context) {
@@ -72,14 +105,29 @@ func UploadCurrentUserProfilePicture(ctx *gin.Context) {
 	}
 
 	// persist record into DB
-	profilePic, err := controllers.AddProfilePicture(ctx.Request.Context(), &types.AddProfilePictureRequest{
+	request := &types.AddProfilePictureRequest{
 		UserId:     currentUser.Id,
 		PictureUrl: destination,
-	})
+	}
+	response, err := controllers.AddProfilePicture(ctx.Request.Context(), request)
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, profilePic)
+	ctx.JSON(http.StatusOK, response)
+
+	go func() {
+		jsonRequest, _ := json.Marshal(request)
+		jsonResponse, _ := json.Marshal(response)
+		log.Infoln(utils.ActivityLog{
+			Subject:   "user",
+			SubjectId: fmt.Sprint(request.UserId),
+			Object:    "profile_picture",
+			ObjectId:  fmt.Sprint(response.Id),
+			Action:    config.LOG_ACTION_CREATE,
+			Request:   string(jsonRequest),
+			Response:  string(jsonResponse),
+		})
+	}()
 }
